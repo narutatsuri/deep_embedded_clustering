@@ -1,2 +1,2 @@
-# deep_embedded_clustering
-Implementation of DEC in Keras.
+# Deep Embedded Clustering
+Implementation of DEC (https://arxiv.org/abs/1511.06335) in Keras, work in progress.
