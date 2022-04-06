@@ -16,7 +16,8 @@ import sys
 # Get MNIST dataset
 print("Loading dataset...")
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
-initializer_dataset = np.concatenate((x_train, x_test)).reshape((-1, mnist_dim))
+initializer_dataset = x_train[:1000].reshape((-1, mnist_dim))
+#initializer_dataset = np.concatenate((x_train, x_test)).reshape((-1, mnist_dim))
 print("Loaded dataset.")
 
 # Initialize SAE
@@ -25,7 +26,7 @@ initializer = SAE(initializer_dataset)
 print("Initialized SAE.")
 
 # Reshape dataset
-initializer_dataset = initializer_dataset.reshape((-1, mnist_dim))
+# initializer_dataset = initializer_dataset.reshape((-1, mnist_dim))
 
 # Get initialized embeddings
 print("Initialize embeddings...")
@@ -34,7 +35,6 @@ print("Initialized embeddings.")
 
 # Initialize DEC by training model on initial embeddings and running Lloyd's 
 # algorithm on output of trained model
-
 dec = DEC(dataset=initializer_dataset,
           initial_z=embeddings,
           data_dim=mnist_dim)

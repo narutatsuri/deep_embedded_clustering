@@ -3,11 +3,14 @@
 #? Datasets-specific Parameters
 # MNIST = 784
 mnist_dim = 784
+mnist_clusters = 10
 
 #? DEC-specific Parameters
-embedding_dim = 10
-dec_train_epochs = 100
-mu_learning_rate = 0.0001
+embedding_dim = 2
+dec_train_epochs = 5
+mu_learning_rate = 0.001
+z_learning_rate = 0.001
+cluster_num = mnist_clusters
 
 #? SAE-specific Parameters
 sae_first_layer_dim = mnist_dim

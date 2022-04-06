@@ -4,6 +4,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense
 from sklearn.cluster import KMeans
+import sys
 
 
 class DEC:
@@ -19,7 +20,7 @@ class DEC:
         self.model.add(Dense(500, input_dim=data_dim, activation='relu'))
         self.model.add(Dense(500, input_dim=500, activation='relu'))
         self.model.add(Dense(2000, input_dim=500, activation='relu'))
-        self.model.add(Dense(10, input_dim=2000, activation='relu'))
+        self.model.add(Dense(embedding_dim, input_dim=2000, activation='relu'))
 
         self.model.compile(loss="mse", 
                            optimizer='adam', 
@@ -29,16 +30,18 @@ class DEC:
     
     def train(self, 
               x):
-        self.model.compile(loss=DEC.loss, 
+        self.model.compile(loss="mse", 
                            optimizer='adam', 
                            metrics=['accuracy'])
         
-        for _ in range(dec_train_epochs):
+        for _ in tqdm(range(dec_train_epochs)):
             self.predict_embedding(x)
             self.cluster()
+            self.get_p_q_dists()
+            updated_x = self.get_updated_x()
             # Update model
             self.model.fit(x=x,
-                           y=self.mu)
+                           y=updated_x)
             # Update mu's
             self.update_mu()
     
@@ -50,23 +53,26 @@ class DEC:
                 x):
         return self.clustering.predict(x)
     
-    @staticmethod
-    def loss(mu,
-             z):
-        q = q_dist(z, mu)
-        p = p_dist(q)
-        return kl_div(q,
-                      p)
+    def get_p_q_dists(self):
+        self.q_dists = q_dist(self.z, self.mu)
+        self.p_dists = p_dist(self.q_dists)
     
+    def get_updated_x(self):
+        updated_z = self.z
+        for i, z in enumerate(self.z):
+            gradient = (alpha+1)/alpha * sum([(1 + np.linalg.norm(z-mu)**2/alpha)**-1 * (self.p_dists[i][j]-self.q_dists[i][j]) * (z-mu) for j, mu in enumerate(self.mu)])    
+            updated_z[i] += gradient * z_learning_rate
+        return updated_z
+
     def update_mu(self):
         updated_mu = self.mu
-        for index_1, mu in enumerate(self.mu):
-            gradient = -(alpha+1)/alpha * sum([(1 + np.linalg.norm(z, mu)**2/alpha)**-1 * (p_dist(q_dist(z, mu))-q_dist(z, mu)) * (z-mu) for z in self.z])    
-            updated_mu[index_1] += gradient * mu_learning_rate
+        for j, mu in enumerate(self.mu):
+            gradient = -(alpha+1)/alpha * sum([(1 + np.linalg.norm(z-mu)**2/alpha)**-1 * (self.p_dists[i][j]-self.q_dists[i][j]) * (z-mu) for i, z in enumerate(self.z)])    
+            updated_mu[j] += gradient * mu_learning_rate
         self.mu = updated_mu
     
     def cluster(self):
-        self.clustering = KMeans(n_clusters=10).fit(self.z)
+        self.clustering = KMeans(n_clusters=cluster_num).fit(self.z)
         self.mu = self.clustering.cluster_centers_
     
 class SAE:
