@@ -20,7 +20,7 @@ def q_dist(z,
     for i, z_i in enumerate(z):
         denominator = sum([(1 + (np.linalg.norm(z_i - mu_j_prime)**2)/alpha)**(-(alpha+1)/2) for mu_j_prime in mu])
         for j, mu_j in enumerate(mu):
-            q[i][j] = (1 + (np.linalg.norm(z_i - mu_j)**2)/alpha)**(-(alpha+1)/2)/denominator
+            q[i][j] = ((1 + (np.linalg.norm(z_i - mu_j)**2)/alpha)**(-(alpha+1)/2))/denominator
             
     return q
 
